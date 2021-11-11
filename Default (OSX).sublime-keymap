@@ -1,6 +1,10 @@
 [
-{ 
-    "keys": ["super+shift+c"],
-    "command": "auto_ink"
-}
+    { 
+        "keys": ["super+shift+c"],
+        "command": "new_auto_ink"
+    },
+    { 
+        "keys": ["super+shift+e"],
+        "command": "edit_auto_ink",
+    }
 ]
