@@ -1,0 +1,17 @@
+{
+    // Possible names for figures folder ranked by name, then recursion depth
+    // i.e. a folder named "res" is prioritized if its closer to current
+    // folder than "figures" folder.
+    "figures_folders": [
+        "figures",
+        "figs",
+        "fig",
+        "res",
+        "img",
+        "plots",
+    ],
+
+    // Number of parent folders it will search through before giving up on 
+    // figures folder
+    "recursive_check": 2,
+}
