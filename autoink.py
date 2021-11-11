@@ -7,6 +7,7 @@
 #------------- Imports -------------#
 import sublime, sublime_plugin
 
+import pathlib
 from pathlib import Path
 import shutil
 # File searching
@@ -18,6 +19,7 @@ import subprocess
 #------------- Settings -------------#
 
 _F_EXT = '.svg'
+_PROGRAM_NAME = 'inkscape'
 
 template_path = (Path(__file__).parent / 'template').with_suffix(_F_EXT)
 
@@ -103,6 +105,37 @@ def find_figures_folder(view, recursive_check, possible_fig_folder_names):
     return None
 
 
+def line_to_latex_command(line):
+    figure_name = line_to_fname(line)
+    # The raw line will be used to caption the figure.
+    caption = line_to_caption(line)
+
+    return latex_command.format(
+        file_name=f'{{{figure_name}}}',
+        # Caption the figure with the raw line adjusted
+        caption=f'{{{caption}}}',
+        # Label the figure with the same name as the file
+        fig_name=f'{{fig:{figure_name}}}',
+    )
+
+
+def fname_to_latex_command(fname):
+    if isinstance(fname, pathlib.PosixPath):
+        # Pull out the filename from the path itself
+        fname = fname.stem
+
+    # Naively convert dashes to spaces
+    caption = fname.replace('-', ' ')
+
+    return latex_command.format(
+        file_name=f'{{{fname}}}',
+        # Caption the figure with the raw line adjusted
+        caption=f'{{{caption}}}',
+        # Label the figure with the same name as the file
+        fig_name=f'{{fig:{fname}}}',
+    )
+
+
 ######################## Main ########################
 
 
@@ -112,6 +145,17 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         print('Running Figure Command...\n')
         view = self.view
+
+        # Get the line to parse out the new figure name
+        line = read_line(view)
+        
+        if line.strip() == '':
+            # This is an empty line, don't bother parsing this.
+            print("Can't parse empty line for a filename.")
+            return
+
+        figure_name = line_to_fname(line)
+
         # Load settings
         settings = sublime.load_settings("AutoInk.sublime-settings")
 
@@ -122,12 +166,6 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
         recursive_check = settings.get(
             'recursive_check', default_recursive_check
         )
-
-        # Get the line to parse out the new figure name
-        line = read_line(view)
-        figure_name = line_to_fname(line)
-        # The raw line will be used to caption the figure.
-        caption = line_to_caption(line)
 
         ### Find figures folder ###
         # The absolute path of the current file being edited
@@ -142,13 +180,7 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
             figures_folder.mkdir()
 
         ### Paste the LaTeX command ###
-        command = latex_command.format(
-            file_name=f'{{{figure_name}}}',
-            # Caption the figure with the raw line adjusted
-            caption=f'{{{caption}}}',
-            # Label the figure with the same name as the file
-            fig_name=f'{{fig:{figure_name}}}',
-        )
+        command = line_to_latex_command(line)
         replace_current_line(view, edit, command)
 
         # Search the figures path to find existing figures with same name
@@ -160,7 +192,7 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
             fname = (figures_folder / figure_name).with_suffix(_F_EXT)
             shutil.copy(template_path, fname)
             # Launches the app with the copied figure file for editing
-            subprocess.Popen(['inkscape', fname])
+            subprocess.Popen([_PROGRAM_NAME, fname])
 
         print('Finished.')
 
@@ -191,9 +223,25 @@ class EditAutoInkCommand(sublime_plugin.WindowCommand):
         
         # Show list of possible files
         self.window.show_quick_panel(
-            fnames, lambda choice_index: self.on_done(choice_index, files)
+            # The options
+            fnames,
+            # The on done method called
+            lambda choice_index: self.on_done(choice_index, files),
+            placeholder='Choose the Inkscape file to edit...'
         )
 
+
     def on_done(self, choice_index, files):
-        path = files[choice_index]
-        subprocess.Popen(['inkscape', path])
+        if choice_index < 0:
+            # Choice index is -1 on cancel.
+            return
+        
+        print( f'Editing Inkscape file: {files[choice_index].stem}' )
+
+        fname = files[choice_index]
+        subprocess.Popen([_PROGRAM_NAME, fname])
+
+        # Check the settings to control the clipboard on a selection
+        settings = sublime.load_settings("AutoInk.sublime-settings")
+        if settings.get('set_clipboard_on_edit', True):
+            sublime.set_clipboard(fname_to_latex_command(fname))
