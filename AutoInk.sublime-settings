@@ -13,7 +13,7 @@
 
     // Number of parent folders it will search through before giving up on 
     // figures folder
-    "recursive_check": 2,
+    "recursive_check": 4,
 
     // Set the LaTeX command to the Clipboard on edit.
     "set_clipboard_on_edit": true,
