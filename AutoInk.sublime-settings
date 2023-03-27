@@ -1,4 +1,9 @@
 {
+    // Path to templates folder
+    "templates": "~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/templates",
+    // The delimiter used for file names,
+    // i.e. Einstein Manifold -> Einstein_Manifold.svg
+    "fname_delimiter": "_",
     // Possible names for figures folder ranked by name, then recursion depth
     // i.e. a folder named "res" is prioritized if its closer to current
     // folder than "figures" folder.
@@ -17,4 +22,13 @@
 
     // Set the LaTeX command to the Clipboard on edit.
     "set_clipboard_on_edit": true,
+
+    // The default command for inserting a figure into a document
+    "latex_command": [
+        "\\begin{{figure}}\\centering",
+        "    \\includesvg{AI_file_name}",
+        "    \\caption{AI_caption}",
+        "    \\label{AI_fig_name}",
+        "\\end{{figure}}"
+    ]
 }

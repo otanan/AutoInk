@@ -5,7 +5,7 @@
 <!-- Header -->
 <h2 align="center">AutoInk(scape)</h2>
   <p align="center">
-    Sublime Text plugin to quickly open Inkscape and generates figures. Heavily inspired by <a href="https://castel.dev/post/lecture-notes-2/" target="_blank">Gilles Castel's Inkscape workflow</a>.
+    Sublime Text plugin to quickly open Inkscape and generates figures. Heavily inspired by <a href="https://castel.dev/post/lecture-notes-2/">Gilles Castel's Inkscape workflow</a>.
     <br />
     <br />
     Status: <em>in progress</em>
@@ -28,8 +28,7 @@
 
 ## Installation
 
-Copy this repository into the Sublime User folder. In macOS this would be
-"~/Library/Application Support/Sublime Text/Packages/User".
+Copy this repository into the Sublime User folder. In macOS this would be `~/Library/Application Support/Sublime Text/Packages/User`.
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
