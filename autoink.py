@@ -10,53 +10,39 @@ Provides hotkey support to generate Inkscape figures from existing templates. In
 import sublime, sublime_plugin
 import pathlib
 from pathlib import Path
-import shutil
-# File searching
-import glob
-# Running Bash commands
-import subprocess
+import shutil # copying the template
+import glob # file searching
+import subprocess # running Bash commands
+#--- Custom imports ---#
+from . import viewer
+from . import parser
 #------------- Fields -------------#
-__version__ = '0.0.0.2'
-#======================== Settings ========================#
+__version__ = '0.0.0.3'
 _F_EXT = '.svg'
 _PROGRAM_NAME = 'inkscape'
-
-template_path = (Path(__file__).parent / 'template').with_suffix(_F_EXT)
-
 #======================== Helper ========================#
-
-def is_valid_line(line):
-    """ Check whether the line read from the view is a valid line for a figure name. """
-    return line.strip() != ''
-
-
-def line_to_fname(line, delim='_'):
-    """ Converts an arbitrary line of text to a usable filename. """
-    # Remove white-space
-    return line.strip().replace(' ', delim).lower()
-
-
-def line_to_name(line):
-    """ Convert the line of text to a properly formatted name. """
-    return line.strip()
-
 
 def load_settings():
     """ Loads and parses any necessary settings. """
     subl_settings = sublime.load_settings("AutoInk.sublime-settings")
     settings = subl_settings.to_dict()
 
-    # Sublime injects the home for paths
-    settings['templates'] = Path.home() / settings['templates'].replace('~/', '')
+    # Make sense of "~" if provided
+    settings['templates'] = Path(settings['templates']).expanduser()
     # Convert the figure command into a single string since it's a list in file
     settings['command'] = '\n'.join(subl_settings['latex_command'])
 
     return settings
 
 
+def launch_editor(fname):
+    """ Launches the figure editing program for fname. """
+    subprocess.Popen([_PROGRAM_NAME, fname])
+
+
 def name_to_caption(figure_name):
     """ Convert the figure name to a usable caption. """
-    return figure_name.strip().capitalize() + '.'
+    return str(figure_name).strip().capitalize() + '.'
 
 
 def find_figures_folder(view, depth=2, possible_names=['figures']):
@@ -74,7 +60,7 @@ def find_figures_folder(view, depth=2, possible_names=['figures']):
             (pathlib.PosixPath/None): the path to the figures folder, or None if none was found.
     
     """
-    current_folder = get_current_folder(view)
+    current_folder = viewer.get_current_folder(view)
 
     for _ in range(depth):
         # Run through each parent folder to search for figures folder
@@ -105,45 +91,36 @@ def format_latex_command(command, fig_name, label):
     )
 
 
-def fname_to_latex_command(fname):
-    if isinstance(fname, pathlib.PosixPath):
-        # Pull out the filename from the path itself
-        fname = fname.stem
-
-    # Naively convert dashes to spaces
-    caption = fname.replace('-', ' ')
-
-    return latex_command.format(
-        file_name=f'{{{fname}}}',
-        # Caption the figure with the raw line adjusted
-        caption=f'{{{caption}}}',
-        # Label the figure with the same name as the file
-        fig_name=f'{{fig:{fname}}}',
-    )
+def get_files_with_extension_in_folder(folder):
+    """ Gets the files with the given extension in the folder provided. """
+    return list(folder.glob('*' + _F_EXT))
 
 
-def launch_editor(fname):
-    """ Launches the figure editing program for fname. """
-    subprocess.Popen([_PROGRAM_NAME, fname])
+def get_template(view, template_path):
+    """ Gets the path to the template file. If the path provided is file, returns the path as-is. If it's a folder, prompts the user for a template to choose from on each run. """
+    def set_choice(choice):
+        nonlocal template_path
+        template_path = Path(choice)
 
+    def prompt_user_for_template():
+        sublime.open_dialog(
+            set_choice,
+            directory=str(template_path)
+        )
 
-#======================== View reading ========================#
+    if template_path is None: return None
 
+    if template_path.is_file(): return template_path
 
-def get_line(view):
-    """ Gets the region of the full line the cursor is currently at """
-    return view.line(view.sel()[0])
+    # The provided template path is neither a file nor a folder:
+    # so it doesn't exist.
+    if not template_path.is_dir():
+        print("Template path doesn't exist")
+        return None
 
-
-def read_line(view):
-    """ Gets the full line of text at the current cursor position. """
-    return view.substr(get_line(view))
-
-
-def get_current_folder(view):
-    """ Gets the current folder the file being edited is in. """
-    # return os.path.abspath(str(view.file_name()) + '/../')
-    return Path(view.file_name()).parent
+    prompt_user_for_template()
+    
+    return template_path
 
 
 #======================== View Writing ========================#
@@ -152,27 +129,18 @@ def get_current_folder(view):
 def make_figure_folder(view, name='figures'):
     """ Makes the figures folder in the case where None was found. """
     # Call it the top ranked folder
-    figures_folder = get_current_folder(view) / name
+    figures_folder = viewer.get_current_folder(view) / name
     figures_folder.mkdir()
     return figures_folder
 
 
-def replace_current_line(view, edit, text):
-    """ Replace current line of text. """
-    view.replace(edit, get_line(view), text)
-
-
 def create_figure(figures_folder, fig_fname, template_path):
     """ Create the actual .svg file or copy from an existing template. """
-    template_path = template_path / 'autoink_default.svg'
-
     # Search the figures path to find existing figures with same name
-    files = list(figures_folder.glob(f'{fig_fname}{_F_EXT}'))
-
-    if len(files) == 0:
+    fname = (figures_folder / fig_fname).with_suffix(_F_EXT)
+    if not fname.is_file():
         print('No figures found, copying template.')
         # If no, copy figure template to figure folder with correct name
-        fname = (figures_folder / fig_fname).with_suffix(_F_EXT)
         shutil.copy2(template_path, fname)
         # Launches the app with the copied figure file for editing
         launch_editor(fname)
@@ -191,8 +159,8 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
 
         #--- Get the figure parameters from the line ---#
         # Get the line to parse out the new figure name
-        line = read_line(view)
-        if not is_valid_line(line):
+        line = viewer.read_line(view)
+        if parser.is_invalid_line(line):
             # This is an empty line, don't bother parsing this.
             print("Can't parse empty line for a filename.")
             return
@@ -200,9 +168,11 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
         #------------- Main Logic -------------#
         settings = load_settings()
         # Get the name of the actual figure
-        fig_name = line_to_name(line)
+        fig_name = parser.text_to_name(line)
         # Get the name that the figure file will have
-        fig_fname = line_to_fname(line, delim=settings['fname_delimiter'])
+        fig_fname = parser.str_to_fname(
+            line, delim=settings['fname_delimiter']
+        )
 
         #--- Getting the figures folder ---#
         # Find the folder to store the figure in
@@ -219,16 +189,27 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
                 view, settings['figures_folders'][0]
             )
 
-        #--- Paste the LaTeX command ---#
+        #--- Prepare the command and template ---#
         command = format_latex_command(
             settings['command'], fig_name, label=fig_fname
         )
-        replace_current_line(view, edit, command)
+
+        template_fname = get_template(view, settings['templates'])
+        # Cancel the operation
+        if template_fname is None:
+            # path choice was canceled on recursive call (see end of function)
+            # return None to cancel this operation
+            print('Template choosing canceled.')
+            return
+        else: template_fname = Path(template_fname)
+
+        #--- Incorporate the command ---#
+        viewer.replace_current_line(view, edit, command)
 
         #--- Make the figure ---#
         create_figure(
             figures_folder, fig_fname,
-            template_path=settings['templates']
+            template_path=template_fname
         )
 
 
@@ -237,24 +218,21 @@ class EditAutoInkCommand(sublime_plugin.WindowCommand):
     def run(self):
         view = self.window.active_view()
 
-        # Load settings
-        settings = sublime.load_settings("AutoInk.sublime-settings")
-
-        possible_fig_folder_names = settings.get('figures_folders')
+        #------------- Main logic -------------#
+        settings = load_settings()
         
-        recursive_check = settings.get('recursive_check')
+        #--- Getting the figures folder ---#
+        figures_folder = find_figures_folder(
+            view, depth=settings['recursive_check'],
+            possible_names=settings['figures_folders']
+        )
 
-
-        figures_folder = find_figures_folder(view, recursive_check, possible_fig_folder_names)
-        files = list(figures_folder.glob(f'*{_F_EXT}'))
-        fnames = [
-            file.stem
-            for file in files
-        ]
+        files = get_files_with_extension_in_folder(figures_folder)
+        fnames = [ file.stem for file in files ]
         
         # Show list of possible files
         self.window.show_quick_panel(
-            # The options
+            # Show options
             fnames,
             # The on done method called
             lambda choice_index: self.on_done(choice_index, files),
@@ -270,9 +248,12 @@ class EditAutoInkCommand(sublime_plugin.WindowCommand):
         print( f'Editing Inkscape file: {files[choice_index].stem}' )
 
         fname = files[choice_index]
-        subprocess.Popen([_PROGRAM_NAME, fname])
+        launch_editor(fname)
 
         # Check the settings to control the clipboard on a selection
-        settings = sublime.load_settings("AutoInk.sublime-settings")
+        settings = load_settings()
+        command = settings['command']
+
         if settings.get('set_clipboard_on_edit', True):
-            sublime.set_clipboard(fname_to_latex_command(fname))
+            command = format_latex_command(command, fname, label=fname)
+            sublime.set_clipboard(command)
