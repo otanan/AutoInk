@@ -49,5 +49,5 @@ def format_latex_command(command, fig_name, label):
         # Caption the figure with the raw line adjusted
         AI_caption=f'{{{caption}}}',
         # Label the figure with the same name as the file
-        AI_fig_name=f'{{fig:{fig_name}}}',
+        AI_fig_name=f'{{fig:{fname}}}',
     )
