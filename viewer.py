@@ -6,6 +6,7 @@
 """
 #------------- Imports -------------#
 from pathlib import Path
+import sublime_plugin
 #--- Custom imports ---#
 # from tools.config import *
 #------------- Fields -------------#
@@ -29,6 +30,12 @@ def get_current_folder(view):
 #======================== Writing ========================#
 
 
-def replace_current_line(view, edit, text):
+def replace_current_line(view, text):
     """ Replace current line of text. """
-    view.replace(edit, get_line(view), text)
+    view.run_command( 'replace_current_line', {'text': text} )
+
+
+class ReplaceCurrentLineCommand(sublime_plugin.TextCommand):
+    def run(self, edit, text):
+        view = self.view
+        view.replace(edit, get_line(view), text)
