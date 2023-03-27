@@ -194,26 +194,76 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
             settings['command'], fig_name, label=fig_fname
         )
 
-        template_fname = get_template(view, settings['templates'])
-        # Cancel the operation
-        if template_fname is None:
-            # path choice was canceled on recursive call (see end of function)
-            # return None to cancel this operation
-            print('Template choosing canceled.')
+
+        #--- Prompt the user for the template ---#
+        template_path = settings['templates']
+
+        if not template_path.exists():
+            print('Template path does not exist.')
             return
-        else: template_fname = Path(template_fname)
 
-        #--- Incorporate the command ---#
-        viewer.replace_current_line(view, edit, command)
+        if template_path.is_dir():
+            # Prompt the user to choose the template
+            sublime.active_window().run_command('choose_figure_template', {
+                "latex_command": command,
+                "figures_folder": str(figures_folder),
+                "fig_fname": fig_fname,
+                "template_path": str(template_path),
+            })
+        else:
+            # Copy the template directly
+            viewer.replace_current_line(view, edit, command)
+            create_figure(
+                figures_folder, fig_fname,
+                template_path=template_fname
+            )
 
-        #--- Make the figure ---#
-        create_figure(
-            figures_folder, fig_fname,
-            template_path=template_fname
+
+class ChooseFigureTemplateCommand(sublime_plugin.WindowCommand):
+    """ Prompt the user to choose a template from the templates folder. """
+
+    def run(self, latex_command, figures_folder, fig_fname, template_path):
+        view = self.window.active_view()
+
+        #------------- Main logic -------------#
+        settings = load_settings()
+        
+        # Get templates
+        templates = get_files_with_extension_in_folder(settings['templates'])
+        fnames = [ file.stem for file in templates ]
+
+        # Show list of possible files
+        self.window.show_quick_panel(
+            # Show options
+            fnames,
+            # The on done method called
+            lambda choice_index: self.on_done(
+                choice_index, templates, figures_folder, fig_fname, latex_command
+            ),
+            placeholder='Choose the template...'
         )
 
 
+    def on_done(self, choice_index, files, figures_folder, fig_fname, latex_command):
+        if choice_index < 0:
+            # Choice index is -1 on cancel.
+            return
+        
+        print( f'Copying template: {files[choice_index].stem}' )
+        template_path = files[choice_index]
+        target_path = (Path(figures_folder) / fig_fname).with_suffix(_F_EXT)
+
+        shutil.copy2(template_path, target_path)
+        launch_editor(target_path)
+
+        # Check the settings to control the clipboard on a selection
+        settings = load_settings()
+        if settings.get('set_clipboard_on_edit', True):
+            sublime.set_clipboard(latex_command)
+
+
 class EditAutoInkCommand(sublime_plugin.WindowCommand):
+    """ Open InkScape to edit existing figures. """
 
     def run(self):
         view = self.window.active_view()

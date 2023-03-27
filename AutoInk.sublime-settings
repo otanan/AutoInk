@@ -2,7 +2,7 @@
     // Path to templates
     // If the path is a folder, user will be prompted each run for the file
     // Otherwise it will copy the template directly
-    "templates": "~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/templates/manifold.svg",
+    "templates": "~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/templates",
     
     // The delimiter used for file names,
     // i.e. Einstein Manifold -> Einstein_Manifold.svg
