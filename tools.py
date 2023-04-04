@@ -8,6 +8,7 @@
 import sublime
 import subprocess
 from pathlib import Path
+import os # sorting svg files
 #--- Custom imports ---#
 #------------- Fields -------------#
 __version__ = '0.0.0.4'
@@ -32,6 +33,12 @@ def launch_editor(path):
     subprocess.Popen(['inkscape', path])
 
 
-def get_svgs_in_folder(folder):
+def get_svgs_in_folder(folder, sort=None):
     """ Gets the svg files in the folder provided. """
-    return list(folder.glob('*' + FILE_EXT))
+    files = list(folder.glob('*' + FILE_EXT))
+
+    if sort == 'modified date':
+        # sort by date modified
+        files = sorted(files, key=os.path.getmtime)[::-1]
+
+    return files

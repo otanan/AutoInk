@@ -8,6 +8,7 @@
 from pathlib import Path
 import shutil # copying the template
 #--- Custom imports ---#
+from .tools import launch_editor
 from . import viewer
 #------------- Fields -------------#
 #======================== Folder searching ========================#

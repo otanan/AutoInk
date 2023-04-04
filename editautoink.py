@@ -6,6 +6,7 @@
 """
 #------------- Imports -------------#
 import sublime
+import sublime_plugin
 #--- Custom imports ---#
 from .tools import *
 from . import figures
@@ -29,7 +30,7 @@ class EditAutoInkCommand(sublime_plugin.WindowCommand):
             possible_names=settings['figures_folders']
         )
 
-        files = get_svgs_in_folder(figures_folder)
+        files = get_svgs_in_folder(figures_folder, sort='modified date')
         fnames = [ file.stem for file in files ]
         
         # Show list of possible files
