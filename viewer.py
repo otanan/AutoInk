@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Handles reading into the editor view, such as reading lines of text in the editor.
+"""Handles reading and writing in the editor view, such as reading lines of text in the editor.
 
 **Author: Jonathan Delgado**
 
@@ -8,9 +8,13 @@
 from pathlib import Path
 import sublime_plugin
 #--- Custom imports ---#
-# from tools.config import *
 #------------- Fields -------------#
 #======================== Reading ========================#
+
+def in_tex_file(view):
+    """ Returns True if the current view is a tex file. """
+    return view.match_selector(0, 'text.tex.latex')
+
 
 def get_line(view):
     """ Gets the region of the full line the cursor is currently at """
@@ -28,7 +32,6 @@ def get_current_folder(view):
 
 
 #======================== Writing ========================#
-
 
 def replace_current_line(view, text):
     """ Replace current line of text. """

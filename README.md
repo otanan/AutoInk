@@ -47,7 +47,7 @@ After reading [Gilles Castel's fantastic blog posts](https://castel.dev/) on his
 ## Usage
 The `.sublime-keymap` file defines the default keyboard shortcuts for running the command. For macOS the default shortcut is <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> to replace the current line of text for a template. Pressing <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd> opens the chooser for editing existing figures in InkScape.
 
-In the `AutoInk.sublime-settings` file you can provide the (absolute) path to any templates. If the path is to a file, **AutoInk** will copy this without any further intervention. If the path is to a folder, then **InkScape** will prompt each time the command is run for which template to copy (as seen in the video).
+In the `AutoInk.sublime-settings` file you can provide the (absolute) path to any templates. If the path is to a file, **AutoInk** will copy this without any further intervention. If the path is to a folder, then **AutoInk** will prompt each time the command is run for which template to copy (as seen in the video).
 
 If figures folders typically have other names, then you can provide these names in the settings file. The list is ranked by priority, that is, if a figures folder is found in the same directory as a plots folder, **AutoInk** will prioritize figures by default. This can be changed by moving the plots folder higher in the list.
 
