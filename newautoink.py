@@ -44,9 +44,9 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
         #--- Get the figure parameters from the line ---#
         # Get the line to parse out the new figure name
         line = viewer.read_line(view)
-        if parser.is_invalid_line(line):
+        if parser.is_invalid_line(view, line):
             # This is an empty line, don't bother parsing this.
-            print("Can't parse empty line for a filename.")
+            # print("Can't parse empty line for a filename.")
             return
 
         #------------- Main Logic -------------#
@@ -57,16 +57,9 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
         # Find the folder to store the figure in
         figures_folder = figures.find_folder(
             view, depth=settings['recursive_check'],
-            possible_names=settings['figures_folders']
+            possible_names=settings['figures_folders'],
+            make_ok=True
         )
-
-        # If no folder could be found
-        if figures_folder is None:
-            print('No figures folder found. Creating one...')
-            figures_folder = figures.make_folder(
-                # Give it the name of the top-ranked folder
-                view, settings['figures_folders'][0]
-            )
 
         target_path = (figures_folder / fig_fname).with_suffix(FILE_EXT)
 

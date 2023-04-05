@@ -14,7 +14,7 @@ from . import viewer
 #======================== Folder searching ========================#
 
 
-def find_folder(view, depth=2, possible_names=['figures']):
+def find_folder(view, depth=2, possible_names=['figures'], make_ok=False):
     """ Finds the folder designated for storing figures.
         
         Args:
@@ -24,6 +24,8 @@ def find_folder(view, depth=2, possible_names=['figures']):
             depth (int): the maximum number of parent folders to check.
 
             possible_names (list): the possible names the figures folder would have.
+
+            make_ok (Bool): whether to make a figures folder if none could be found.
     
         Returns:
             (pathlib.PosixPath/None): the path to the figures folder, or None if none was found.
@@ -45,10 +47,14 @@ def find_folder(view, depth=2, possible_names=['figures']):
         current_folder /= '..'
 
     # No folder could be found.
-    return None
+    if not make_ok:
+        return None
+
+    print('No figures folder found. Creating one...')
+    return _make_folder(view, name=possible_names[0])
 
 
-def make_folder(view, name='figures'):
+def _make_folder(view, name='figures'):
     """ Makes the figures folder in the case where None was found. """
     # Call it the top ranked folder
     figures_folder = viewer.get_current_folder(view) / name

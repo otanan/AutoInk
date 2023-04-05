@@ -7,13 +7,23 @@
 #------------- Imports -------------#
 # import sys
 #--- Custom imports ---#
-# from tools.config import *
+from . import alerts
 #------------- Fields -------------#
 #======================== Functions ========================#
 
-def is_invalid_line(line):
+def is_invalid_line(view, line):
     """ Check whether the line read from the view is a valid line for a figure name. """
-    return line.strip() == '' or '/' in line or '{' in line or '}' in line
+    line = line.strip()
+
+    if line == '':
+        alerts.popup(view, "Can't parse empty line for a filename.")
+        return True
+
+    if '/' in line or '{' in line or '}' in line:
+        alerts.popup(view, "Cannot parse line containing a command.")
+        return True
+
+    return False
 
 
 def str_to_fname(text, delim='_'):
