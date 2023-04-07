@@ -65,7 +65,8 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
 
         #--- Prepare the command and template ---#
         command = parser.format_latex_command(
-            settings['command'], fig_name, label=fig_fname
+            settings['command'], fig_name, label=fig_fname,
+            indent=parser.get_indentation(line)
         )
 
         #--- Prompt the user for the template ---#

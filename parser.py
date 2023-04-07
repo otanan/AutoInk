@@ -50,14 +50,28 @@ def name_to_caption(figure_name):
     return str(figure_name).strip().capitalize() + '.'
 
 
-def format_latex_command(command, fig_name, label):
+def format_latex_command(command, fig_name, label, indent=0):
     # The raw line will be used to caption the figure.
     caption = name_to_caption(fig_name)
     fname = str_to_fname(fig_name)
-    return command.format(
+    command = command.format(
         AI_file_name=f'{{{fname}}}',
         # Caption the figure with the raw line adjusted
         AI_caption=f'{{{caption}}}',
         # Label the figure with the same name as the file
         AI_fig_name=f'{{fig:{fname}}}',
     )
+
+    if not indent:
+        return command
+
+    # Indent the lines of the command
+    return '\n'.join(
+        ' ' * indent + command_line
+        for command_line in command.splitlines()
+    )
+
+
+def get_indentation(text):
+    """ Returns the indentation level of the text of text. """
+    return len(text) - len(text.lstrip())

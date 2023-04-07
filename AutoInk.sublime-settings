@@ -5,7 +5,7 @@
     "templates": "~/Library/Application Support/org.inkscape.Inkscape/config/inkscape/templates",
     
     // The delimiter used for file names,
-    // i.e. Einstein Manifold -> Einstein_Manifold.svg
+    // i.e. Einstein Manifold -> einstein_manifold.svg
     "fname_delimiter": "_",
     
     // Possible names for figures folder ranked by name, then recursion depth

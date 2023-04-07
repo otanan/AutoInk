@@ -11,7 +11,7 @@ from pathlib import Path
 import os # sorting svg files
 #--- Custom imports ---#
 #------------- Fields -------------#
-__version__ = '0.0.0.4'
+__version__ = '0.2.0'
 FILE_EXT = '.svg'
 #======================== Settings & Editor ========================#
 
