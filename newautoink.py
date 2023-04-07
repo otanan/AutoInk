@@ -14,6 +14,7 @@ from .tools import *
 from . import viewer
 from . import parser
 from . import figures
+from . import alerts
 #------------- Fields -------------#
 #======================== Main ========================#
 
@@ -26,7 +27,6 @@ def get_figure_parameters(text, fname_delimiter='_'):
         text, delim=fname_delimiter
     )
     return fig_name, fig_fname
-
 
 
 class NewAutoInkCommand(sublime_plugin.TextCommand):
@@ -70,10 +70,10 @@ class NewAutoInkCommand(sublime_plugin.TextCommand):
         )
 
         #--- Prompt the user for the template ---#
+        # Gets the path to the template file
         template_path = settings['templates']
-
         if not template_path.exists():
-            print('Template path does not exist.')
+            alerts.popup(view, 'Cannot find templates, path provided is invalid. Check AutoInk settings.')
             return
 
         if template_path.is_dir():

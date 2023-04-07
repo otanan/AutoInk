@@ -10,7 +10,8 @@
     
     // Possible names for figures folder ranked by name, then recursion depth
     // i.e. a folder named "res" is prioritized if its closer to current
-    // folder than "figures" folder.
+    // folder than "figures" folder. However, if both "res" and "figures" are
+    // in the same directory, pick "figures" since it is ranked higher.
     "figures_folders": [
         "figures",
         "figs",
@@ -21,7 +22,8 @@
     ],
     
     // Number of parent folders it will search through before giving up on 
-    // figures folder
+    // searching for a figures folder. Will default to generating the folder 
+    // in the .tex's current directory.
     "recursive_check": 4,
     
     // Set the LaTeX command to the Clipboard on edit.

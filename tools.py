@@ -9,11 +9,18 @@ import sublime
 import subprocess
 from pathlib import Path
 import os # sorting svg files
+import shutil # checking that Inkscape is installed
 #--- Custom imports ---#
 #------------- Fields -------------#
 __version__ = '0.2.0'
+EDITOR = 'inkscape'
 FILE_EXT = '.svg'
 #======================== Settings & Editor ========================#
+
+def editor_is_installed():
+    """ Checks that Inkscape is installed. """
+    return shutil.which(EDITOR) is not None
+
 
 def load_settings():
     """ Loads and parses any necessary settings. """
@@ -30,7 +37,11 @@ def load_settings():
 
 def launch_editor(path):
     """ Launches the figure editing program for file at path. """
-    subprocess.Popen(['inkscape', path])
+    if not editor_is_installed():
+        print(f'No {EDITOR} installation found. Cannot launch editor.')
+        return
+
+    subprocess.Popen([EDITOR, path])
 
 
 def get_svgs_in_folder(folder, sort=None):
