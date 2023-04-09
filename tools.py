@@ -12,7 +12,7 @@ import os # sorting svg files
 import shutil # checking that Inkscape is installed
 #--- Custom imports ---#
 #------------- Fields -------------#
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 EDITOR = 'inkscape'
 FILE_EXT = '.svg'
 #======================== Settings & Editor ========================#

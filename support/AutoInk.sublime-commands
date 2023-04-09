@@ -1,0 +1,26 @@
+[
+    {
+        "caption": "AutoInk: New Figure",
+        "command": "new_from_prompt_auto_ink"
+    },
+    {
+        "caption": "AutoInk: Edit Figure",
+        "command": "edit_auto_ink"
+    },
+    {
+        "caption": "Preferences: AutoInk Settings",
+        "command": "edit_settings",
+        "args": {
+            "base_file": "${packages}/AutoInk/AutoInk.sublime-settings",
+            "default": "// Settings in here override those in \"AutoInk/AutoInk.sublime-settings\"\n{\n\t$0\n}"}
+    },
+    {
+        "caption": "Preferences: AutoInk Key Bindings",
+        "command": "edit_settings",
+        "args": {
+            "base_file": "${packages}/AutoInk/support/Default ($platform).sublime-keymap",
+            "user_file": "${packages}/User/Default ($platform).sublime-keymap",
+            "default": "[\n\t$0\n]\n",
+        }
+    }
+]

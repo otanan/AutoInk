@@ -1,0 +1,10 @@
+[
+    { 
+        "keys": ["ctrl+shift+c"],
+        "command": "new_auto_ink"
+    },
+    { 
+        "keys": ["ctrl+shift+e"],
+        "command": "edit_auto_ink",
+    }
+]
