@@ -74,8 +74,9 @@ class NewFromPromptAutoInkCommand(sublime_plugin.WindowCommand):
             return
 
         # Open a new tab to paste the command into
-        sublime.run_command('new_file')
-        make_new_figure(self.window.active_view(), text)
+        current_view = self.window.active_view()
+        self.window.run_command('new_file', args={'syntax': 'Packages/LaTeX/LaTeX.sublime-syntax'})
+        make_new_figure(current_view, text)
     
 
     def on_cancel(self):
